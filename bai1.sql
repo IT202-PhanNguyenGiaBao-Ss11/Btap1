@@ -1,23 +1,24 @@
+CALL CancelAppointment(105);
+
+USE RikkeiClinicDB;
+
+DROP PROCEDURE IF EXISTS CancelAppointment;
+
 DELIMITER //
-CREATE PROCEDURE cancelAppointment (IN p_appoinmentId INT) 
-BEGIN 
+CREATE PROCEDURE CancelAppointment(IN p_appointment_id INT)
+BEGIN
     UPDATE Appointments
     SET status = 'Cancelled'
-    WHERE Appointment_id = p_appointmentId;
+    WHERE appointment_id = p_appointment_id 
+      AND status = 'Pending';
 END //
 DELIMITER ;
 
-CALL cancelAppoinment (5);
 
--- lỗi xảy ra vì procedure chỉ chọn cái giống với id truyền vào chứ không kiểm tra trạng thái dẫn đến việc thay đổi bất kể trạng thái
+-- Test Case 1: Cố gắng hủy lịch khám 105 (đã Completed) -> Sẽ KHÔNG bị đổi thành Cancelled
+CALL CancelAppointment(105);
+SELECT * FROM Appointments WHERE appointment_id = 105; -- Kì vọng: status vẫn là 'Completed'
 
-DROP PROCEDURE cancelAppointment;
-
-DELIMITER //
-CREATE PROCEDURE cancelAppointment (IN p_appoinmentId INT) 
-BEGIN 
-    UPDATE Appointments
-    SET status = 'Cancelled'
-    WHERE Appointment_id = p_appointmentId AND status = 'Pending';
-END //
-DELIMITER ;
+-- Test Case 2: Hủy lịch khám 104 (đang Pending) -> Sẽ thành công đổi thành Cancelled
+CALL CancelAppointment(104);
+SELECT * FROM Appointments WHERE appointment_id = 104; -- Kì vọng: status chuyển thành 'Cancelled'
